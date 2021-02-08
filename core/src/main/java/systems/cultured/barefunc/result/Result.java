@@ -2,6 +2,7 @@ package systems.cultured.barefunc.result;
 
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.function.Supplier;
 
 /**
  * Represents the result of an operation that might fail. A result can either be Ok, in which case it contains a value of T, or
@@ -37,6 +38,30 @@ public abstract class Result<T, E> {
     public T orElse(T defaultValue) {
         return handle(Function.identity(), error -> defaultValue);
     }    
+
+    /**
+     * @param defaultMapper a function to convert an error value to a value of T
+     * @return the value contained in an Ok result, or the result of passing the error to the defaultMapper for an Error result
+     */
+    public T orElseGet(Function<E, T> defaultMapper) {
+		return handle(Function.identity(), defaultMapper);
+	}
+
+    /**
+     * @param defaultSupplier a supplier that provides a value of T
+     * @return the value contained in an Ok result, or the result of defaultSupplier for an Error result
+     */
+    public T orElseGet(Supplier<T> defaultSupplier) {
+		return handle(Function.identity(), error -> defaultSupplier.get());
+	}
+
+    /**
+     * @param <X> the type of exception thrown by an Error result
+     * @param exceptionMapper converts the value contained in an Error result to an exception
+     * @return the value of an Ok result
+     * @throws X if called on an Error result
+     */
+	public abstract <X extends Exception> T orElseThrow(Function<E, X> exceptionMapper) throws X;
 
     /**
      * Processes the value of an Ok result.
@@ -82,6 +107,11 @@ public abstract class Result<T, E> {
         public <U> U handle(Function<? super T, ? extends U> okHandler, Function<? super E, ? extends U> errorHandler) {
             return okHandler.apply(value);
         }
+
+		@Override
+		public <X extends Exception> T orElseThrow(Function<E, X> exceptionMapper) throws X {
+			return value;
+		}
     }
 
     public static final class Error<T, E> extends Result<T, E> {
@@ -95,5 +125,10 @@ public abstract class Result<T, E> {
         public <U> U handle(Function<? super T, ? extends U> okHandler, Function<? super E, ? extends U> errorHandler) {
             return errorHandler.apply(error);
         }
+
+		@Override
+		public <X extends Exception> T orElseThrow(Function<E, X> exceptionMapper) throws X {
+			throw exceptionMapper.apply(error);
+		}
     }
 }

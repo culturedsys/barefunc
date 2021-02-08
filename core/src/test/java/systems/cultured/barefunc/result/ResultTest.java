@@ -2,6 +2,7 @@ package systems.cultured.barefunc.result;
 
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.core.IsEqual.equalTo;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static systems.cultured.barefunc.result.IsError.isError;
 import static systems.cultured.barefunc.result.IsOk.isOk;
 
@@ -39,6 +40,47 @@ public class ResultTest {
         var got = error.orElse(2);
 
         assertThat(got, equalTo(2));
+    }
+
+    @Test public void orElseGetOfOkIsValue() {
+        var ok = Result.ok(1);
+
+        var got = ok.orElseGet(error -> 2);
+
+        assertThat(got, equalTo(1));
+    }
+
+    @Test public void orElseGetOfErrorIsMappedError() {
+        var ok = Result.error(1);
+
+        var got = ok.orElseGet(error -> error + 1);
+
+        assertThat(got, equalTo(2));
+    }
+
+    @Test public void orElseThrowOfOkIsValue() {
+        var ok = Result.ok(1);
+
+        var got = ok.orElseThrow(error -> new RuntimeException("Error"));
+
+        assertThat(got, equalTo(1));
+    }
+
+    @Test public void orElseThrowOfErrorThrowsRuntimeException() {
+        var error = Result.error(1);
+
+        var thrown = 
+                assertThrows(RuntimeException.class, () -> error.orElseThrow(e -> new RuntimeException(Integer.toString(e))));
+
+        assertThat(thrown.getMessage(), equalTo("1"));
+    }
+
+    @Test public void orElseThrowOfErrorThrowsException() {
+        var error = Result.error(1);
+
+        var thrown = assertThrows(Exception.class, () -> error.orElseThrow(e -> new Exception(Integer.toString(e))));
+
+        assertThat(thrown.getMessage(), equalTo("1"));
     }
 
     @Test public void mapOfOkIsMapped() {
