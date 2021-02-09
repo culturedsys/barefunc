@@ -36,3 +36,48 @@ int ratio = result.orElse(0);
 
 int ratio = result.orElseThrow(error -> new IllegalArgumentException(error));
 ```
+
+## Flatteners
+
+Provides Collectors which convert a Stream of some type that contains a value,
+to an instance of that type containing a collected result.
+
+### Result
+
+For a Stream of `Result<T, E>`, the result depends on whether the stream
+contains any Error results. If the Stream only contains Ok results, the Result
+flattener produces an Ok result, containing the result of collecting all the
+values within these Ok results. If the Stream contains any Error results, the
+flattener produces an Error result containing the result of collecting the
+Errors in the Stream.
+
+The Collectors used for collecting values and errors can be specified. If they
+are not specified, Ok results are collected to a list of all values, and Error
+results are collected to one of these Errors (the first in encounter order).
+
+Using the default collectors:
+
+```java
+// Produces Ok([1, 2, 3])
+Stream.of(Result.ok(1), Result.ok(2), Result.ok(3))
+        .collect(Flatteners.result());
+
+// Produces Error(2)
+Stream.of(Result.ok(1), Result.error(2), Result.error(3))
+        .collect(Flatteners.result());
+```
+
+Or, if the collectors are specified:
+
+```java
+//Produces "1,2,3"
+Stream.of(Result.ok(1), Result.ok(2), Result.ok(3))
+        .collect(Flatteners.result(Collectors.joining(","), 
+                Collectors.toSet()));
+
+// Produces Set(2, 3)
+Stream.of(Result.ok(1), Result.error(2), Result.error(3))
+        .collect(Flatteners.result(Collectors.joining(","), 
+                Collectors.toSet()));
+```
+
