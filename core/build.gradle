@@ -3,6 +3,11 @@ plugins {
     id "org.sonarqube" version "3.3"
 }
 
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
 repositories {
     mavenCentral()
 }
