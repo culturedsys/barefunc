@@ -24,7 +24,18 @@ public sealed interface Io<T> {
   }
 
   private static <S, T> Io<T> flattenFlatMap(FlatMap<S, T> flatMap) {
-    return flatMap.f().apply(flatMap.previous().run());
+    var f = flatMap.f();
+
+    if (flatMap.previous() instanceof FlatMap<?, S> previousFlatMap) {
+      return flattenNestedFlatMap(previousFlatMap, f);
+    }
+
+    return f.apply(flatMap.previous().run());
+  }
+
+  private static <R, S, T> Io<T> flattenNestedFlatMap(FlatMap<R, S> flatMap, Function<S, Io<T>> f) {
+    return flatMap.previous()
+      .flatMap(r -> flatMap.f().apply(r).flatMap(f));
   }
 
   <U> U match(Function<Pure<T>, U> pure,

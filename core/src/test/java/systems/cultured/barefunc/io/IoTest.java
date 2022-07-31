@@ -20,4 +20,15 @@ public class IoTest {
     public void flatMapRunsToValue() {
         assertThat(Io.pure(1).flatMap(i -> Io.pure(i + 1)).run(), equalTo(2));
     }
+    
+    @Test
+    public void flatMapIsStackSafe() {
+        Io<Integer> io = Io.pure(0);
+
+        for(int i = 0; i < 100000; i++) {
+            io = io.flatMap(v -> Io.pure(v + 1));
+        }
+
+        assertThat(io.run(), equalTo(100000));
+    }
 }
