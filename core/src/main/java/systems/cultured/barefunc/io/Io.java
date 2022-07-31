@@ -3,6 +3,8 @@ package systems.cultured.barefunc.io;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import systems.cultured.barefunc.tailcall.TailCall;
+
 public sealed interface Io<T> {
   static <U> Io<U> pure(U value) {
     return new Pure<>(value);
@@ -17,9 +19,13 @@ public sealed interface Io<T> {
   }
 
   default T run() {
-    return match(pure -> pure.value(), 
-        suspend -> suspend.supplier().get(), 
-        flatMap -> flattenFlatMap(flatMap).run()
+    return runToTailCall().eval();
+  }
+
+  private TailCall<T> runToTailCall() {
+    return match(pure -> TailCall.done(pure.value()), 
+        suspend -> TailCall.done(suspend.supplier().get()), 
+        flatMap -> TailCall.call(() -> flattenFlatMap(flatMap).runToTailCall())
     );
   }
 
