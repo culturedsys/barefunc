@@ -20,7 +20,8 @@ public class ReducerTest {
   @Test
   void canMap() {
     var result = Reduce.over(List.of("hello", "world"))
-      .reduce(Reducers.map(String::toUpperCase), Collections.emptyList());
+      .reduce(Transformers.map((String s) -> s.toUpperCase()).apply(Transformers::addToList), 
+        Collections.emptyList());
 
     assertThat(result, equalTo(List.of("HELLO", "WORLD")));
   }
@@ -28,8 +29,19 @@ public class ReducerTest {
   @Test
   void canFilter() {
     var result = Reduce.over(List.of(1, 2, 3, 4, 5))
-      .reduce(Reducers.filter(x -> x % 2 == 0), Collections.emptyList());
+      .reduce(Transformers.filter((Integer x) -> x % 2 == 0).apply(Transformers::addToList), 
+        Collections.emptyList());
 
     assertThat(result, equalTo(List.of(2, 4)));
+  }
+
+  @Test
+  void canCompose() {
+    var result = Reduce.over(List.of(1, 2, 3, 4, 5))
+      .compose(Transformers.filter((Integer x) -> x % 2 == 0))
+      .compose(Transformers.map((Integer x) -> x * 2))
+      .reduce(Transformers::addToList, Collections.emptyList());
+
+    assertThat(result, equalTo(List.of(4, 8)));
   }
 }
