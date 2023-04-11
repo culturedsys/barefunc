@@ -12,7 +12,7 @@ public class ReducerTest {
   @Test
   void canSum() {
     var result = Reduce.over(List.of(1, 2, 3))
-      .reduce((a, t) -> a + t, 0);
+      .reduce((a, t) -> new Reducer.Continue<>(a + t), 0);
 
     assertThat(result, equalTo(6));
   }  
@@ -43,5 +43,25 @@ public class ReducerTest {
       .reduce(Transformers::addToList, Collections.emptyList());
 
     assertThat(result, equalTo(List.of(4, 8)));
+  }
+
+  @Test
+  void canTakeWhile() {
+    var result = Reduce.over(List.of(1, 2, 3, 4, 5))
+      .compose(Transformers.takeWhile(x -> x < 4))
+      .reduce(Transformers::addToList, Collections.emptyList());
+
+    assertThat(result, equalTo(List.of(1, 2, 3)));
+  }
+
+  @Test
+  void canSort() {
+    var result = Reduce.over(List.of(3, 1, 4, 2, 5))
+      .compose(Transformers.map(x -> x - 1))
+      .compose(Transformers.sorted())
+      .compose(Transformers.takeWhile(x -> x <= 3))
+      .reduce(Transformers::addToList, Collections.emptyList());
+
+    assertThat(result, equalTo(List.of(0, 1, 2, 3)));
   }
 }
