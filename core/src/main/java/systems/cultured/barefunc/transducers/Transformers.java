@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.PriorityQueue;
 import java.util.function.Function;
 import java.util.function.Predicate;
+import java.util.function.Supplier;
 
 public final class Transformers {
   public abstract static class Forwarding<A, O, T> implements Reducer<A, T> {
@@ -117,5 +118,21 @@ public final class Transformers {
 
   public static <T extends Comparable<? super T>> Transformer<T, T> sorted() {
     return sorted(Comparator.naturalOrder());
+  }
+
+  public static <T> Supplier<Collector<List<T>, T>> toList() {
+    return () -> new Collector<>() {
+      private final List<T> result = new ArrayList<>();
+
+      @Override
+      public List<T> get() {
+        return result;
+      }
+
+      @Override
+      public void accept(T t) {
+        result.add(t);
+      }      
+    };
   }
 }

@@ -3,6 +3,8 @@ package systems.cultured.barefunc.transducers;
 import java.util.Collection;
 import java.util.function.Supplier;
 
+import systems.cultured.barefunc.Unit;
+
 
 public class Reduce<T, U> {
   private Collection<T> source;
@@ -38,5 +40,13 @@ public class Reduce<T, U> {
     }
 
     return reducer.finish(acc);
+  }
+
+  public <R> R collect(Supplier<Collector<R, U>> supplier) {
+    var collector = supplier.get();
+
+    reduce(collector, Unit.unit());
+
+    return collector.get();
   }
 }

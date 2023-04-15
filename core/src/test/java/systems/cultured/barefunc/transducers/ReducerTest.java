@@ -64,4 +64,14 @@ public class ReducerTest {
 
     assertThat(result, equalTo(List.of(0, 1, 2, 3)));
   }
+
+  @Test
+  void canCollect() {
+    var result = Reduce.over(List.of(1, 2, 3, 4, 5))
+      .compose(Transformers.map(x -> x - 1))
+      .compose(Transformers.filter(x -> x <= 3))
+      .collect(Transformers.toList());
+
+    assertThat(result, equalTo(List.of(0, 1, 2, 3)));
+  }
 }
